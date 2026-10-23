@@ -126,9 +126,10 @@ def redirect_uri(request: Request) -> str:
     dans l'application TrackDéchets (https inclus)."""
     if PUBLIC_BASE_URL:
         return f"{PUBLIC_BASE_URL}/oauth2/trackdechets/callback"
-    # Repli : le proxy Railway annonce le protocole et l'hôte d'origine.
-    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
     host = request.headers.get("x-forwarded-host") or request.url.netloc
+    # Railway termine le TLS en amont et n'annonce pas toujours le protocole :
+    # hors développement local, on impose https pour rester conforme à l'URI déclarée.
+    proto = "http" if host.startswith(("localhost", "127.0.0.1")) else "https"
     return f"{proto}://{host}/oauth2/trackdechets/callback"
 
 

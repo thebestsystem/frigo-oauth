@@ -143,3 +143,18 @@ def test_redirect_uri_uses_public_base_url(monkeypatch):
 
     assert main.redirect_uri(FakeRequest()) == \
         "https://trackdechets.up.railway.app/oauth2/trackdechets/callback"
+
+
+def test_redirect_uri_forces_https_behind_proxy(monkeypatch):
+    monkeypatch.setattr(main, "PUBLIC_BASE_URL", "")
+
+    class FakeRequest:
+        headers = {"x-forwarded-host": "trackdechets.up.railway.app"}
+        class url:
+            netloc = "trackdechets.up.railway.app"
+            scheme = "http"
+        def url_for(self, name):
+            return "http://trackdechets.up.railway.app/oauth2/trackdechets/callback"
+
+    assert main.redirect_uri(FakeRequest()) == \
+        "https://trackdechets.up.railway.app/oauth2/trackdechets/callback"
