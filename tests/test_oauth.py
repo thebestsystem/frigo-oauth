@@ -131,3 +131,15 @@ def test_draft_surfaces_graphql_error(client, monkeypatch):
     monkeypatch.setattr(main.httpx, "AsyncClient", FakeClient)
     r = client.post("/api/trackdechets/draft-bsff", json={"input": {}}, cookies={"frigo_sid": sid})
     assert r.json() == {"ok": False, "error": "SIRET invalide"}
+
+
+def test_redirect_uri_uses_public_base_url(monkeypatch):
+    """Sur Railway le TLS est terminé en amont : http:// ne doit jamais fuiter."""
+    monkeypatch.setattr(main, "PUBLIC_BASE_URL", "https://trackdechets.up.railway.app")
+
+    class FakeRequest:
+        def url_for(self, name):
+            return "http://trackdechets.up.railway.app/oauth2/trackdechets/callback"
+
+    assert main.redirect_uri(FakeRequest()) == \
+        "https://trackdechets.up.railway.app/oauth2/trackdechets/callback"

@@ -37,6 +37,9 @@ ENV = os.environ.get("TDC_ENV", "sandbox").lower()
 CLIENT_ID = os.environ.get("TDC_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("TDC_CLIENT_SECRET", "")
 APP_ORIGIN = os.environ.get("APP_ORIGIN", "https://thebestsystem.github.io")
+# Railway termine le TLS en amont : sans ça, request.url donne http:// et le
+# redirect_uri ne correspond plus à celui déclaré côté TrackDéchets.
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "").rstrip("/")
 DB_PATH = os.environ.get("DB_PATH", "/data/frigo_oauth.db")
 STATE_TTL = 600  # 10 minutes, comme le code d'autorisation
 
@@ -119,7 +122,10 @@ def get_session(sid: str | None) -> sqlite3.Row | None:
 
 # ------------------------------------------------------------------ fonctions
 def redirect_uri(request: Request) -> str:
-    """L'URL de retour doit être identique à celle déclarée dans l'application."""
+    """L'URL de retour doit être identique, au caractère près, à celle déclarée
+    dans l'application TrackDéchets (https inclus)."""
+    if PUBLIC_BASE_URL:
+        return f"{PUBLIC_BASE_URL}/oauth2/trackdechets/callback"
     return str(request.url_for("callback"))
 
 
