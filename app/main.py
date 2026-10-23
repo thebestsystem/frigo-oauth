@@ -126,7 +126,10 @@ def redirect_uri(request: Request) -> str:
     dans l'application TrackDéchets (https inclus)."""
     if PUBLIC_BASE_URL:
         return f"{PUBLIC_BASE_URL}/oauth2/trackdechets/callback"
-    return str(request.url_for("callback"))
+    # Repli : le proxy Railway annonce le protocole et l'hôte d'origine.
+    proto = request.headers.get("x-forwarded-proto") or request.url.scheme
+    host = request.headers.get("x-forwarded-host") or request.url.netloc
+    return f"{proto}://{host}/oauth2/trackdechets/callback"
 
 
 async def exchange_code(code: str, uri: str) -> dict:
